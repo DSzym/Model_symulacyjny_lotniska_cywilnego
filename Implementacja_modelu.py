@@ -45,8 +45,8 @@ class Plane:
         self.time_to_prepare_for_departure = time_difference(self.arrival, self.departure)
         print(
             f"Class PLane initialization parameters: id: {self.id}{nl}arrival: {self.arrival}{nl}departure: "
-            f"{self.departure}{nl}emergency?: {self.if_emergency}{nl}service time: {self.time_to_prepare_for_departure}"
-            f"{nl} ")
+            f"{self.departure}{nl}service time: {self.time_to_prepare_for_departure}{nl} ")
+
 
 
 class Schedule:
@@ -81,7 +81,7 @@ class Schedule:
             new_plane = Plane(plane_arr, plane_dep, '', i, prob_of_emergency)
             self.list_of_planes.append(new_plane)
 
-        print(f"Generated schedule: {nl}{self.list_of_planes}{nl}")
+        #print(f"Generated schedule: {nl}{self.list_of_planes}{nl}")
 
     def print_data(self):
         for plane in self.list_of_planes:
@@ -103,7 +103,7 @@ class Airport:
     def initialize_runway_occupation(self):
         for i in range(self.number_of_runways):
             self.runways_occupation[i + 1] = [0, '', '', 0]
-        print(f"Initialized runway occupation: {nl}{self.runways_occupation}{nl}")
+        #print(f"Initialized runway occupation: {nl}{self.runways_occupation}{nl}")
 
     def check_runways_occupation(self):
 
@@ -206,7 +206,7 @@ while current_time < simulation_duration:
 
     # przypisanie samolotów do pasów lotniczych jeśi możliwe
     for airplane in simulation_schedule.list_of_planes:
-        if airplane.arrival == current_time:
+        if airplane.arrival == current_time and not airplane.if_emergency:
             available_runway = simulation_Airport.check_runways_occupation()
             if available_runway != -1 and len(
                     simulation_Airport.planes_currently_on_the_airport) < simulation_Airport.max_number_of_planes_on_ground:
@@ -218,7 +218,7 @@ while current_time < simulation_duration:
     # jeśli samolot trafia na pas, to zmniejsza się licznik samolotów na lotnisku
 
     for airplane in simulation_Airport.planes_currently_on_the_airport:
-        print(f"sprawdzenie gotowości do odlotu, samolot {airplane}")
+        #print(f"sprawdzenie gotowości do odlotu, samolot {airplane}")
         if airplane.actual_departure == current_time:
             available_runway = simulation_Airport.check_runways_occupation()
             if available_runway != -1:
@@ -254,9 +254,14 @@ while current_time < simulation_duration:
 
 # ---------------------- Podsumowanie i wizualizacja przebiegu symulacji ----------------------------
 
+# Wyświetlenie ponownie harmonogramu wraz z aktualizacją rzeczywistych godzin przylotu
+print(f"End of simulation{nl}")
+simulation_schedule.print_data()
+
 # Zaznaczenie na osi czasu kiedy jaki samolot przyleciał i wyleciał
 
 fig, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
+plt.grid()
 
 for airplane in simulation_schedule.list_of_planes:
     ax1.scatter([airplane.arrival, airplane.departure], [airplane.id, airplane.id],
@@ -268,16 +273,18 @@ for airplane in simulation_schedule.list_of_planes:
                                 arrowstyle='-|>,head_width=.2', mutation_scale=20, color="black")
         ax1.add_patch(arrow)
 
-ax1.set_title("Harmonogram")
-ax2.set_title("Rzeczywiste")
+ax1.set_title("Harmonogram godzin przylotu i wylotu samolotów")
+ax2.set_title("Rzeczywiste godziny przylotu i wylotu samolotów")
 
-ax1.set_ylabel('ID Samolotu')
-ax1.set_xlabel('Czas')
-ax2.set_ylabel('ID Samolotu')
-ax2.set_xlabel('Czas')
+ax1.set_ylabel('ID Samolotu', fontsize=12)
+ax1.set_xlabel('Czas', fontsize=12)
+ax2.set_ylabel('ID Samolotu', fontsize=12)
+ax2.set_xlabel('Czas', fontsize=12)
 
-fig.suptitle('Wykres punktowy godzin przylotu i wylotu samolotów')
+#fig.suptitle('Wykres punktowy godzin przylotu i wylotu samolotów')
 ax1.legend()
+ax1.grid(True)
+ax2.grid(True)
 plt.show()
 
 # Wykres opóźnień samolotów
@@ -295,9 +302,10 @@ for airplane in simulation_schedule.list_of_planes:
 l = plt.legend()
 if len(l.get_texts()) == 0:
     plt.xticks(np.arange(0, 4, 1), ["", 'Opóźnienie przylotów', 'Opóźnienie wylotów', ""])
+else:
+    plt.legend()
 
 plt.ylabel('Czas opóźnienia [min]')
-plt.legend()
 plt.show()
 
 # Wykres użycia pasów startowych
@@ -324,7 +332,7 @@ for runway_nr in simulation_Airport.runways_occupation.keys():
 
 ax.set_ylim(0, y_bar)
 ax.set_xlim(0, 2500)
-ax.set_xlabel('time')
+ax.set_xlabel('Czas', fontsize=12)
 ax.set_yticks(y_labels_points, labels=y_labels)
 
 legend_elements = [Patch(facecolor='orange', edgecolor='orange', label='Samoloty lądujące'),
@@ -332,6 +340,3 @@ legend_elements = [Patch(facecolor='orange', edgecolor='orange', label='Samoloty
 
 ax.legend(handles=legend_elements, loc='upper right')
 plt.show()
-
-# Wyświetlenie ponownie harmonogramu wraz z aktualizacją rzeczywistych godzin przylotu
-simulation_schedule.print_data()
